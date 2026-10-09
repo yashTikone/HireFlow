@@ -1,0 +1,1 @@
+import {Link} from 'react-router-dom';export default function NotFound(){return <div className="center-page"><span className="eyebrow">404</span><h1>Page not found.</h1><p>Looks like this opportunity went somewhere else.</p><Link className="primary-btn" to="/">Back to HireFlow →</Link></div>}

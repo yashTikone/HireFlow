@@ -1,0 +1,13 @@
+const express = require('express');
+const { protect, authorize } = require('../Authentication/authMiddleware');
+const validateJob = require('./jobValidation');
+const { createJob, getJobs, getMyJobs, getJobById, updateJob, closeJob, deleteJob } = require('./jobController');
+const router = express.Router();
+router.post('/', protect, authorize('recruiter'), validateJob, createJob);
+router.get('/', protect, getJobs);
+router.get('/mine', protect, authorize('recruiter'), getMyJobs);
+router.get('/:id', protect, getJobById);
+router.put('/:id', protect, authorize('recruiter'), validateJob, updateJob);
+router.patch('/:id/close', protect, authorize('recruiter'), closeJob);
+router.delete('/:id', protect, authorize('recruiter'), deleteJob);
+module.exports = router;

@@ -1,0 +1,12 @@
+const Profile = require('../models/Profile');
+const fs = require('fs');
+const path = require('path');
+const completion = (p) => Math.round(([p.about,p.education,p.experience,p.projects?.length,p.resume,p.profilePhoto,p.location,p.linkedIn,p.github].filter(Boolean).length / 9) * 100);
+const ensureProfile = async (userId) => Profile.findOneAndUpdate({ user: userId }, { $setOnInsert: { user: userId, projects: [] } }, { new: true, upsert: true });
+const createProfile = async (req,res) => { const existing=await Profile.findOne({user:req.user.id}); if(existing) return res.status(400).json({message:'Profile already exists'}); const profile=await Profile.create({...req.body,user:req.user.id}); res.status(201).json({message:'Profile created successfully',profile}); };
+const getProfile = async (req,res) => { const profile=await ensureProfile(req.user.id); res.json({profile,profileCompletion:`${completion(profile)}%`}); };
+const updateProfile = async (req,res) => { const profile=await ensureProfile(req.user.id); Object.assign(profile, req.body); await profile.save(); res.json({message:'Profile updated successfully',profile}); };
+const deleteProfile = async (req,res) => { await Profile.deleteOne({user:req.user.id}); res.json({message:'Profile deleted successfully'}); };
+const uploadResume = async (req,res) => { if(!req.file) return res.status(400).json({message:'Resume file is required'}); const profile=await ensureProfile(req.user.id); if(profile.resume && fs.existsSync(profile.resume)) fs.unlinkSync(profile.resume); profile.resume=req.file.path; await profile.save(); res.json({message:'Resume uploaded successfully',resume:profile.resume}); };
+const uploadProfilePhoto = async (req,res) => { if(!req.file) return res.status(400).json({message:'Profile photo is required'}); const profile=await ensureProfile(req.user.id); if(profile.profilePhoto && fs.existsSync(profile.profilePhoto)) fs.unlinkSync(profile.profilePhoto); profile.profilePhoto=req.file.path; await profile.save(); res.json({message:'Profile photo uploaded successfully',profilePhoto:profile.profilePhoto}); };
+module.exports={createProfile,getProfile,updateProfile,deleteProfile,uploadResume,uploadProfilePhoto};
